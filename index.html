@@ -5,11 +5,13 @@
 		<link rel="stylesheet" href="style.css">
 		<title>Kurzy: Projekt #1</title>
 		<script src="javascript.js" defer></script>
-		<script src="javascript_currency_basic.js" defer></script>
+		<script src="javascript_currency_full.js" defer></script>
 	</head>
 	<body>
 		<div class="aktualni_mena" id="border" onclick="changeMena()"></div>
 		<div class="jazyk" id="border" onclick="changeLanguage()"></div>
+		<div class="plus" id="border" onclick="pridaniRadkuMeny()">+</div>
+		<div class="minus" id="border" onclick="odstraneniRadkuMeny()">-</div>
 		<header>
 			<div class="zeme" id="border">
 				<div class="head"><a id="zem"></a></div>
@@ -42,7 +44,7 @@
 				<div class="mena12 headunder"></div>
 			</div>
 			<div class="zeme_vlajka" id="border">
-				<div class="head"><a>ㅤ</a></div>
+				<div class="head" ><a>ㅤ</a></div>
 				<div class="zeme_vlajka1 headunder"></div>
 				<div class="zeme_vlajka2 headunder"></div>
 				<div class="zeme_vlajka3 headunder"></div>
@@ -59,7 +61,7 @@
 			</div>
 			<div class="kurz_prodej" id="border">
 				
-				<div class="head"><a id="kurz_prode"></a><a></a></div>
+				<div class="head" ><a id="kurz_prode"></a></div>
 				<div class="kurz_koupe1 headunder"></div>
 				<div class="kurz_koupe2 headunder"></div>
 				<div class="kurz_koupe3 headunder"></div>
@@ -74,7 +76,7 @@
 				<div class="kurz_koupe12 headunder"></div>
 			</div>
 			<div class="kurz_koupe" id="border">
-				<div class="head"><a id="kurz_koup"></a><a></a></div>
+				<div class="head"><a id="kurz_koup"></a></div>
 				<div class="kurz_prodej1 headunder"></div>
 				<div class="kurz_prodej2 headunder"></div>
 				<div class="kurz_prodej3 headunder"></div>

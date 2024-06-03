@@ -64,8 +64,26 @@ header{
     max-width: 100%;
     height: 100%;
 }
-
-
+.plus{
+    margin-top: 1%;
+    left: 60%;
+    width: 2%;
+    height: 6%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: greenyellow;
+}
+.minus{
+    margin-top: 1%;
+    left: 63%;
+    width: 2%;
+    height: 6%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: red;
+}
 
 
 .aktualni_mena{
