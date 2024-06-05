@@ -6,18 +6,8 @@ let Codes = ["EUR","USD","GBP","JPY","CNY","AUD","THB","SGD","TWD","CZK","BRL","
 let MAXNUM; //!!!Nesmí překročit číslo 12!!!!
 //Procenta (1% = 0.01, 100% = 1.00), o kolik levněji se budou kupovat měny
 const zdrazeni = 0.05;
-//Hodnota i zde znamená, nakolik desetinných míst chceme ukázat finální kurzy, nastavuje se v url parametrech
-let i;
-//Seznam jazyků, ten první bude vždy brán jako výchozí.
-const langs = ["en","cz"];
-//Texty a překlady na webu, v [0] je jazyk "en", v [1] je jazyk "cz"
-let textTransl = {
-    "zem": ["Country:", "Země:"],
-    "men": ["Currency:", "Měna:"],
-    "kurz_prode": ["We buy for", "Koupíme za:"],
-    "kurz_koup": ["We sell for:", "Prodáme za:"],
-    "aktualni_mena": ["Actual Currency: ", "Aktuální měna: "]
-};
+document.documentElement.style.setProperty('--z-index', '-2' );
+
 document.addEventListener("DOMContentLoaded", function all() {
     console.log("start");
     //Klíč API, ze serveru openexchangerates.org
@@ -53,14 +43,14 @@ document.addEventListener("DOMContentLoaded", function all() {
         numA = numA + 1;
     }        
     //Prozatimní!--------------------------------------------------------------------------------------<---------------------------------------------
-    while(MAXNUM > 12){
+    while(MAXNUM > 20){
         poradi.pop();
         MAXNUM = poradi.length;
         Oprava = true;
     }
     Codes = poradi
     var PovolovacSpusteni = true;
-    //Nastavení hodnot, které nejsou v pořádku na základní (pro lang: en, pro zaklMena: CZK)
+    //Nastavení hodnot, které nejsou v pořádku na základní (pro lang: en, pro zaklMena: CZK) 91.5
     if (Oprava === true){
         //Smazání parametrů
         const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
@@ -70,6 +60,7 @@ document.addEventListener("DOMContentLoaded", function all() {
         Oprava = false;
         PovolovacSpusteni = false;
     }
+    document.documentElement.style.setProperty('--headundersize', String((100 - ((MAXNUM - 1)* 0.25) )/ (MAXNUM + 1)) + '%' );
     //Konec nastatování url parametrů
     //Přizařovač znaku aktuální měny
     const menaVse = menaVs[zaklMena];
@@ -99,7 +90,6 @@ document.addEventListener("DOMContentLoaded", function all() {
         {
             ddd = item2;
         }
-
         return ddd;
     };
     //Nastavování jazyků 
@@ -138,13 +128,13 @@ document.addEventListener("DOMContentLoaded", function all() {
                 while (number < MAXNUM){
                     currencyCode = Codes[number];
                     number = number + 1;
-    
                     var cislo = String (number);
                     var odkaz1 = odkazkupr + cislo;
                     var odkaz2 = odkazkuko + cislo;
                     var odkaz3 = odkazze + cislo;
                     var odkaz4 = odkazme + cislo;
                     var odkaz5 = odkazvl + cislo;
+
                     //Žluté označení v případě, že se zrovna dělá řádek s měnou, která je zároveň nastavená jako základní(aktuální)
                     if(currencyCode === zaklMena){
                         document.querySelector(odkaz1).innerHTML  = `<div class="actual">${exchangeRat(currencyCode)}</div>`;
@@ -158,7 +148,9 @@ document.addEventListener("DOMContentLoaded", function all() {
                         document.querySelector(odkaz4).textContent  = `${menaJmeno[currencyCode]}(${menaVs[currencyCode]})`;
                     }
                     document.querySelector(odkaz5).innerHTML = `<img class="zeme_vlajky" src="https://flagcdn.com/w40/${menaVlajky[currencyCode]}.png" alt="${menaStat[currencyCode]}">`;
+                
                 }
+
             })
             .catch(error => console.error('Chyba:', error));
     }
@@ -187,52 +179,43 @@ function changeLanguage(){
     window.history.replaceState({ path: newUrl }, '', newUrl);
     window.location.search += '&lang=' + lang +'&zaklMena='+ zaklMena + '&i=' + i +'&poradi=' + Codes;
 }
-//Funkce, kterou používám při kliknutí na aktuální měnu, která následně změní měnu v url parametrech
-function changeMena(){
+
+
+function changeButtonMenaMAIN(NUM){
     const parametryUrl = new URLSearchParams(window.location.search);
     lang = parametryUrl.get('lang');
     zaklMena = parametryUrl.get('zaklMena');
     i = parametryUrl.get('i');
     poradi = parametryUrl.get('poradi') ? parametryUrl.get('poradi').split(',') : [];
+    zaklMena = CodesBackup[NUM];
+    Codes = poradi;
+    konecAkt();
     const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
     window.history.replaceState({ path: newUrl }, '', newUrl);
-    let numberHledaci = 0;
-    while (!(CodesBackup[numberHledaci] === zaklMena)){
-        numberHledaci = numberHledaci + 1;
-    }
-    if(numberHledaci === CodesBackup.length - 1){
-        numberHledaci = 0;
-    }else if(numberHledaci > CodesBackup.length - 1){
-        numberHledaci = 0;
-    }else{
-        numberHledaci = numberHledaci + 1;
-    }
-    zaklMena = CodesBackup[numberHledaci];
     window.location.search += '&lang=' + lang +'&zaklMena='+ zaklMena + '&i=' + i +'&poradi=' + Codes;
 }
-//Funkce, kterou používám při kliknutí na určitý název státu, kde se používá měna, která následně změní stát v url paramatrech, posune se to o stát dál
-function changeDivMena(numB){
+//Funkce, kterou používám při kliknutí na aktuální měnu, která následně změní měnu v url parametrech
+function changeMena(){
+    document.documentElement.style.setProperty('--z-index', '5' );
+    const aktNUM = CodesBackup.length - 1;
+    let NUM = 0;    
     const parametryUrl = new URLSearchParams(window.location.search);
-    lang = parametryUrl.get('lang');
-    zaklMena = parametryUrl.get('zaklMena');
-    i = parametryUrl.get('i');
-    poradi = parametryUrl.get('poradi') ? parametryUrl.get('poradi').split(',') : [];
-    let numberHledaci = 0;
-    while (!(CodesBackup[numberHledaci] === poradi[numB-1])){
-        numberHledaci = numberHledaci + 1;
+    let lang = parametryUrl.get('lang');
+    let aktualization = `<div style="position: fixed; border: 1px solid grey; width: 3%; height: 5%; left: 77%; color: white; background-color: black; display: flex; justify-content: center;align-items: center;overflow-x: hidden;overflow-y: hidden;" onclick="konecAkt()">×</div>`;
+    if (lang === 'cz'){
+        aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMenaMAIN(${NUM})">${CodesBackup[NUM]} - ${menaJmenoCZ[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;
+        while (NUM < aktNUM){
+            NUM = NUM + 1;
+            aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMenaMAIN(${NUM})">${CodesBackup[NUM]} - ${menaJmenoCZ[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;
+        }
+    }else if(lang === 'en'){
+        aktualization = aktualization +  `<div class="aktu${NUM} aktunder" onclick="changeButtonMenaMAIN(${NUM})">${CodesBackup[NUM]} - ${menaJmenoEN[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;
+        while (NUM < aktNUM){
+            NUM = NUM + 1;
+            aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMenaMAIN(${NUM})">${CodesBackup[NUM]} - ${menaJmenoEN[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;
+        }
     }
-    if(numberHledaci === CodesBackup.length - 1){
-        numberHledaci = 0;
-    }else if(numberHledaci > CodesBackup.length - 1){
-        numberHledaci = 0;
-    }else{
-        numberHledaci = numberHledaci + 1;
-    }
-    poradi[numB-1] = CodesBackup[numberHledaci];
-    Codes = poradi;
-    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-    window.history.replaceState({ path: newUrl }, '', newUrl);
-    window.location.search += '&lang=' + lang +'&zaklMena='+ zaklMena + '&i=' + i +'&poradi=' + Codes;
+    document.querySelector('.aktualizatormen').innerHTML = aktualization;
 }
 //Funkce přidávající další měnu
 function pridaniRadkuMeny(){
@@ -244,7 +227,7 @@ function pridaniRadkuMeny(){
     poradi.push(CodesBackup[0]);
     MAXNUM = poradi.length;   
     //Prozatimní!--------------------------------------------------------------------------------------<---------------------------------------------
-    if(MAXNUM > 12){
+    if(MAXNUM > 20){
         poradi.pop();
         MAXNUM = poradi.length;
     }
@@ -270,4 +253,102 @@ function odstraneniRadkuMeny(){
     const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
     window.history.replaceState({ path: newUrl }, '', newUrl);
     window.location.search += '&lang=' + lang +'&zaklMena='+ zaklMena + '&i=' + i +'&poradi=' + Codes;
+}
+
+
+function konecAkt(){
+    document.documentElement.style.setProperty('--z-index', '-2' );
+    document.querySelector('.aktualizatormen').innerHTML = ``;;
+}
+function changeButtonMena(aaaNUM, NUM){
+    const parametryUrl = new URLSearchParams(window.location.search);
+    lang = parametryUrl.get('lang');
+    zaklMena = parametryUrl.get('zaklMena');
+    i = parametryUrl.get('i');
+    poradi = parametryUrl.get('poradi') ? parametryUrl.get('poradi').split(',') : [];
+    poradi[aaaNUM] = CodesBackup[NUM];
+    Codes = poradi;
+    konecAkt();
+    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+    window.history.replaceState({ path: newUrl }, '', newUrl);
+    window.location.search += '&lang=' + lang +'&zaklMena='+ zaklMena + '&i=' + i +'&poradi=' + Codes;
+}
+function changeButtonI(aaaNUM){
+    const parametryUrl = new URLSearchParams(window.location.search);
+    lang = parametryUrl.get('lang');
+    zaklMena = parametryUrl.get('zaklMena');
+    i = parametryUrl.get('i');
+    poradi = parametryUrl.get('poradi') ? parametryUrl.get('poradi').split(',') : [];
+    i = aaaNUM;
+    Codes = poradi;
+    konecAkt();
+    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+    window.history.replaceState({ path: newUrl }, '', newUrl);
+    window.location.search += '&lang=' + lang +'&zaklMena='+ zaklMena + '&i=' + i +'&poradi=' + Codes;
+}
+function aktualizatorMen(aaaNUM){
+    document.documentElement.style.setProperty('--z-index', '5' );
+    const aktNUM = CodesBackup.length - 1;
+    let NUM = 0;    
+    const parametryUrl = new URLSearchParams(window.location.search);
+    let lang = parametryUrl.get('lang');
+    let aktualization = `<div style="position: fixed; border: 1px solid grey; width: 3%; height: 5%; left: 77%; color: white; background-color: black; display: flex; justify-content: center;align-items: center;overflow-x: hidden;overflow-y: hidden;" onclick="konecAkt()">×</div>`;
+    if (lang === 'cz'){
+        aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaJmenoCZ[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;
+        while (NUM < aktNUM){
+            NUM = NUM + 1;
+            aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaJmenoCZ[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;
+        }
+    }else if(lang === 'en'){
+        aktualization = aktualization +  `<div class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaJmenoEN[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;
+        while (NUM < aktNUM){
+            NUM = NUM + 1;
+            aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaJmenoEN[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;
+        }
+    }
+    document.querySelector('.aktualizatormen').innerHTML = aktualization;
+}
+function aktualizatorStatMen(aaaNUM){
+    document.documentElement.style.setProperty('--z-index', '5' );
+    const aktNUM = CodesBackup.length - 1;
+    let NUM = 0;    
+    const parametryUrl = new URLSearchParams(window.location.search);
+    let lang = parametryUrl.get('lang');
+    let aktualization = `<div style="position: fixed; border: 1px solid grey; width: 3%; height: 5%; left: 77%; color: white; background-color: black; display: flex; justify-content: center;align-items: center;overflow-x: hidden;overflow-y: hidden;" onclick="konecAkt()">×</div>`;
+    if (lang === 'cz'){
+        aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaStatCZ[CodesBackup[NUM]]}</div>`;
+        while (NUM < aktNUM){
+            NUM = NUM + 1;
+            aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaStatCZ[CodesBackup[NUM]]}</div>`;
+        }
+    }else if(lang === 'en'){
+        aktualization = aktualization +  `<div class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaStatEN[CodesBackup[NUM]]}</div>`;
+        while (NUM < aktNUM){
+            NUM = NUM + 1;
+            aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaStatEN[CodesBackup[NUM]]}</div>`;
+        }
+    }
+    document.querySelector('.aktualizatormen').innerHTML = aktualization;
+}
+function aktualizatorIMen(){
+    document.documentElement.style.setProperty('--z-index', '5' );
+    let NUM = 0;    
+    const parametryUrl = new URLSearchParams(window.location.search);
+    lang = parametryUrl.get('lang');
+    i = parametryUrl.get('i');
+    let langNUM;
+    if(lang === langs[1]){
+        langNUM = 1;
+    }else if(lang === langs[0]){
+        langNUM = 0;
+    }
+    let aktualization = `<div style="position: fixed; border: 1px solid grey; width: 3%; height: 5%; left: 77%; color: white; background-color: black; display: flex; justify-content: center;align-items: center;overflow-x: hidden;overflow-y: hidden;" onclick="konecAkt()">×</div>`;
+
+    aktualization = aktualization +  `<div class="aktu${NUM} aktunder" onclick="changeButtonI(${NUM})">${NUM} ${textTransl["desetinne_carky"][langNUM]}</div>`;
+    while (NUM < 100){
+        NUM = NUM + 1;
+        aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonI(${NUM} )">${NUM} ${textTransl["desetinne_carky"][langNUM]}</div>`;
+    }
+    
+    document.querySelector('.aktualizatormen').innerHTML = aktualization;
 }
