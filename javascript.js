@@ -3,7 +3,7 @@
 //Možné zlepšení: Rozšířit to napojením na nějaký soubor, takže to nebude takto pevně (omezeně) dané               
 let Codes = ["EUR","USD","GBP","JPY","CNY","AUD","THB","SGD","TWD","CZK","BRL","BGN"];
 //Maximální počet kurzů na měny, které to má zobrazit, nastavuje se v url parametrech
-let MAXNUM; //!!!Nesmí překročit číslo 12!!!!
+let MAXNUM; 
 //Procenta (1% = 0.01, 100% = 1.00), o kolik levněji se budou kupovat měny
 const zdrazeni = 0.05;
 document.documentElement.style.setProperty('--z-index', '-2' );
@@ -13,8 +13,10 @@ document.addEventListener("DOMContentLoaded", function all() {
     //Klíč API, ze serveru openexchangerates.org
     const apiKey = '766970c19e8a4cab933b9f562bd4998b'; 
     const apiUrl = `https://openexchangerates.org/api/latest.json?app_id=${apiKey}`;
+    const cacheKey = 'OpenExchangeRates';
+    const cacheExpiry = 18000000;
     //Časovač na 30 minut(1 800 000 milisekund), aby se po 30 minutách spustil celý tento kód a aktualizovaly se data
-    setTimeout(all, 1800000);
+    setTimeout(all, cacheExpiry);
     const parametryUrl = new URLSearchParams(window.location.search);
     //Nastavení hodnot z URL parametrů
     let lang = parametryUrl.get('lang');
@@ -95,67 +97,92 @@ document.addEventListener("DOMContentLoaded", function all() {
     //Nastavování jazyků 
     const menaStat = languager(lang, menaStatCZ,menaStatEN);
     const menaJmeno = languager(lang, menaJmenoCZ,menaJmenoEN);
-    //Připojení na https://openexchangerates.org/api/latest.json?app_id=${apiKey} pouze při správných parametrech
-    if(PovolovacSpusteni){
-        console.log("start--");
+    momentalniCas = new Date().getTime();
+    //Kontrolovač datumu expirace (30 minut) lokal cache 
+    if(momentalniCas > localStorage.getItem(cacheKey + 'Time')){
+        console.log('fetch :/')
         fetch(apiUrl)
-            .then(response => response.json())
-            .then(data => {
-                //Tyto odkazy jsou základní třídy bez čísel, vždycky se z nim nakonec připojí to číslo a vznikne třída, kterou mám zapsanou v divech
-                var odkazkupr ='.kurz_prodej';
-                var odkazkuko ='.kurz_koupe';
-                var odkazze = '.zeme';
-                var odkazme ='.mena';
-                var odkazvl = '.zeme_vlajka';
-                let number = 0;
-                //czk je základní(aktuální) hodnota měny, podle které se všechno řídí
-                const czk = data.rates[zaklMena]; 
-                document.querySelector('.aktualni_mena').textContent = `${textTransl["aktualni_mena"][langNUM]}${menaJmeno[zaklMena]} (${zaklMena})`;
-
-                //Nastavení hodnoty na prodej
-                function exchangeRat(currency){
-                    const exchange = czk / data.rates[currency];
-                    const aaa = `${exchange.toFixed(i)} ${menaVse}`;
-                    return aaa;
-                }
-                //Nastavení hodnoty na koupi
-                function buyRat(currency){
-                    const buy = czk / data.rates[currency] * (1 - zdrazeni);
-                    const bbb = `${buy.toFixed(i)} ${menaVse}`;
-                    return bbb;
-                }
-                //Funkce která jednotlivým divům přiřazuje to co k nim má zrovna patřit (MAXNUM je zde maxiální číslo u jednotlivých divů )
-                while (number < MAXNUM){
-                    currencyCode = Codes[number];
-                    number = number + 1;
-                    var cislo = String (number);
-                    var odkaz1 = odkazkupr + cislo;
-                    var odkaz2 = odkazkuko + cislo;
-                    var odkaz3 = odkazze + cislo;
-                    var odkaz4 = odkazme + cislo;
-                    var odkaz5 = odkazvl + cislo;
-
-                    //Žluté označení v případě, že se zrovna dělá řádek s měnou, která je zároveň nastavená jako základní(aktuální)
-                    if(currencyCode === zaklMena){
-                        document.querySelector(odkaz1).innerHTML  = `<div class="actual">${exchangeRat(currencyCode)}</div>`;
-                        document.querySelector(odkaz2).innerHTML  = `<div class="actual">${buyRat(currencyCode)}</div>`;
-                        document.querySelector(odkaz3).innerHTML = `<div class="actual">${menaStat[currencyCode]} (${currencyCode})</div>`;
-                        document.querySelector(odkaz4).innerHTML  = `<div class="actual">${menaJmeno[currencyCode]} (${menaVs[currencyCode]})</div>`;
-                    }else{
-                        document.querySelector(odkaz1).textContent  = exchangeRat(currencyCode);
-                        document.querySelector(odkaz2).textContent  = buyRat(currencyCode);
-                        document.querySelector(odkaz3).textContent = `${menaStat[currencyCode]} (${currencyCode})`;
-                        document.querySelector(odkaz4).textContent  = `${menaJmeno[currencyCode]}(${menaVs[currencyCode]})`;
-                    }
-                    document.querySelector(odkaz5).innerHTML = `<img class="zeme_vlajky" src="https://flagcdn.com/w40/${menaVlajky[currencyCode]}.png" alt="${menaStat[currencyCode]}">`;
-                
-                }
-
-            })
-            .catch(error => console.error('Chyba:', error));
+        .then(response => response.json())
+        .then(data => {
+            localStorage.setItem(cacheKey, JSON.stringify(data));
+            const aktCas = new Date().getTime();
+            localStorage.setItem(cacheKey + 'Time', aktCas + cacheExpiry);
+        
+        })
+        .catch(error => console.error('Chyba:', error))
     }
+
+    if(PovolovacSpusteni){
+        if (localStorage.getItem(cacheKey)){
+            const data = JSON.parse(localStorage.getItem(cacheKey));
+            //Tyto odkazy jsou základní třídy bez čísel, vždycky se z nim nakonec připojí to číslo a vznikne třída, kterou mám zapsanou v divech
+            var odkazkupr ='.kurz_prodej';
+            var odkazkuko ='.kurz_koupe';
+            var odkazze = '.zeme';
+            var odkazme ='.mena';
+            localStorage.setItem(cacheKey, JSON.stringify(data));
+            var odkazvl = '.zeme_vlajka';
+            let number = 0;
+            //czk je základní(aktuální) hodnota měny, podle které se všechno řídí
+            const czk = data.rates[zaklMena]; 
+            document.querySelector('.aktualni_mena').textContent = `${textTransl["aktualni_mena"][langNUM]}${menaJmeno[zaklMena]} (${zaklMena})`;
+
+            //Nastavení hodnoty na prodej
+            function exchangeRat(currency){
+                const exchange = czk / data.rates[currency];
+                const aaa = `${exchange.toFixed(i)} ${menaVse}`;
+                return aaa;
+            }
+            //Nastavení hodnoty na koupi
+            function buyRat(currency){
+                const buy = czk / data.rates[currency] * (1 - zdrazeni);
+                const bbb = `${buy.toFixed(i)} ${menaVse}`;
+                return bbb;
+            }
+            //Funkce která jednotlivým divům přiřazuje to co k nim má zrovna patřit (MAXNUM je zde maxiální číslo u jednotlivých divů )
+            while (number < MAXNUM){
+                currencyCode = Codes[number];
+                number = number + 1;
+                var cislo = String (number);
+                var odkaz1 = odkazkupr + cislo;
+                var odkaz2 = odkazkuko + cislo;
+                var odkaz3 = odkazze + cislo;
+                var odkaz4 = odkazme + cislo;
+                var odkaz5 = odkazvl + cislo;
+            
+            //Žluté označení v případě, že se zrovna dělá řádek s měnou, která je zároveň nastavená jako základní(aktuální)
+            if(currencyCode === zaklMena){
+                document.querySelector(odkaz1).innerHTML  = `<div class="actual">${exchangeRat(currencyCode)}</div>`;
+                document.querySelector(odkaz2).innerHTML  = `<div class="actual">${buyRat(currencyCode)}</div>`;
+                document.querySelector(odkaz3).innerHTML = `<div class="actual">${menaStat[currencyCode]} (${currencyCode})</div>`;
+                document.querySelector(odkaz4).innerHTML  = `<div class="actual">${menaJmeno[currencyCode]} (${menaVs[currencyCode]})</div>`;
+            }else{
+                document.querySelector(odkaz1).textContent  = exchangeRat(currencyCode);
+                document.querySelector(odkaz2).textContent  = buyRat(currencyCode);
+                document.querySelector(odkaz3).textContent = `${menaStat[currencyCode]} (${currencyCode})`;
+                document.querySelector(odkaz4).textContent  = `${menaJmeno[currencyCode]}(${menaVs[currencyCode]})`;
+            }
+            document.querySelector(odkaz5).innerHTML = `<img class="zeme_vlajky" src="https://flagcdn.com/w40/${menaVlajky[currencyCode]}.png" alt="${menaStat[currencyCode]}">`;
+        
+        }
+    } 
+}
+    
     PovolovacSpusteni = true;
 });
+
+
+
+
+//Klikací funkce
+//    |
+//    |
+//    |
+//   \|/
+//    '
+
+
+
 //Funkce, kterou používám při kliknutí na vlajku, která následně změní jazyk a obrázek v url parametrech
 function changeLanguage(){
     const parametryUrl = new URLSearchParams(window.location.search);
@@ -180,7 +207,7 @@ function changeLanguage(){
     window.location.search += '&lang=' + lang +'&zaklMena='+ zaklMena + '&i=' + i +'&poradi=' + Codes;
 }
 
-
+//Funkce která aktualizující parametr zaklMena po kliknutí v aktualizatormen
 function changeButtonMenaMAIN(NUM){
     const parametryUrl = new URLSearchParams(window.location.search);
     lang = parametryUrl.get('lang');
@@ -203,16 +230,21 @@ function changeMena(){
     let lang = parametryUrl.get('lang');
     let aktualization = `<div style="position: fixed; border: 1px solid grey; width: 3%; height: 5%; left: 77%; color: white; background-color: black; display: flex; justify-content: center;align-items: center;overflow-x: hidden;overflow-y: hidden;" onclick="konecAkt()">×</div>`;
     if (lang === 'cz'){
-        aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMenaMAIN(${NUM})">${CodesBackup[NUM]} - ${menaJmenoCZ[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;
+        if(zaklMena === CodesBackup[NUM]){aktualization = aktualization + `<div style="background-color: yellow" class="aktu${NUM} aktunder" onclick="changeButtonMenaMAIN(${NUM})">${CodesBackup[NUM]} - ${menaJmenoCZ[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;
+        }else{aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMenaMAIN(${NUM})">${CodesBackup[NUM]} - ${menaJmenoCZ[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;}
         while (NUM < aktNUM){
             NUM = NUM + 1;
-            aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMenaMAIN(${NUM})">${CodesBackup[NUM]} - ${menaJmenoCZ[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;
+            if(zaklMena === CodesBackup[NUM]){aktualization = aktualization + `<div style="background-color: yellow" class="aktu${NUM} aktunder" onclick="changeButtonMenaMAIN(${NUM})">${CodesBackup[NUM]} - ${menaJmenoCZ[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;
+            }else{aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMenaMAIN(${NUM})">${CodesBackup[NUM]} - ${menaJmenoCZ[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;}
         }
     }else if(lang === 'en'){
-        aktualization = aktualization +  `<div class="aktu${NUM} aktunder" onclick="changeButtonMenaMAIN(${NUM})">${CodesBackup[NUM]} - ${menaJmenoEN[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;
+        
+        if(zaklMena === CodesBackup[NUM]){aktualization = aktualization + `<div style="background-color: yellow" class="aktu${NUM} aktunder" onclick="changeButtonMenaMAIN(${NUM})">${CodesBackup[NUM]} - ${menaJmenoEN[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;
+        }else{aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMenaMAIN(${NUM})">${CodesBackup[NUM]} - ${menaJmenoEN[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;}
         while (NUM < aktNUM){
             NUM = NUM + 1;
-            aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMenaMAIN(${NUM})">${CodesBackup[NUM]} - ${menaJmenoEN[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;
+            if(zaklMena === CodesBackup[NUM]){aktualization = aktualization + `<div style="background-color: yellow" class="aktu${NUM} aktunder" onclick="changeButtonMenaMAIN(${NUM})">${CodesBackup[NUM]} - ${menaJmenoEN[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;
+            }else{aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMenaMAIN(${NUM})">${CodesBackup[NUM]} - ${menaJmenoEN[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;}
         }
     }
     document.querySelector('.aktualizatormen').innerHTML = aktualization;
@@ -255,11 +287,12 @@ function odstraneniRadkuMeny(){
     window.location.search += '&lang=' + lang +'&zaklMena='+ zaklMena + '&i=' + i +'&poradi=' + Codes;
 }
 
-
+//Funkce schvovávající aktualizatormen za cernotu a odstraňujicí všechny objekty z aktualizatormen
 function konecAkt(){
     document.documentElement.style.setProperty('--z-index', '-2' );
     document.querySelector('.aktualizatormen').innerHTML = ``;;
 }
+//Funkce která aktualizující parametr v poradi po kliknutí v aktualizatormen
 function changeButtonMena(aaaNUM, NUM){
     const parametryUrl = new URLSearchParams(window.location.search);
     lang = parametryUrl.get('lang');
@@ -273,6 +306,7 @@ function changeButtonMena(aaaNUM, NUM){
     window.history.replaceState({ path: newUrl }, '', newUrl);
     window.location.search += '&lang=' + lang +'&zaklMena='+ zaklMena + '&i=' + i +'&poradi=' + Codes;
 }
+//Funkce která aktualizující parametr i po kliknutí v aktualizatormen
 function changeButtonI(aaaNUM){
     const parametryUrl = new URLSearchParams(window.location.search);
     lang = parametryUrl.get('lang');
@@ -286,28 +320,43 @@ function changeButtonI(aaaNUM){
     window.history.replaceState({ path: newUrl }, '', newUrl);
     window.location.search += '&lang=' + lang +'&zaklMena='+ zaklMena + '&i=' + i +'&poradi=' + Codes;
 }
+
+//Funkce která zobrazí aktualizatormen s jednotlivými názvy měn
 function aktualizatorMen(aaaNUM){
     document.documentElement.style.setProperty('--z-index', '5' );
     const aktNUM = CodesBackup.length - 1;
     let NUM = 0;    
     const parametryUrl = new URLSearchParams(window.location.search);
     let lang = parametryUrl.get('lang');
+    poradi = parametryUrl.get('poradi') ? parametryUrl.get('poradi').split(',') : [];
     let aktualization = `<div style="position: fixed; border: 1px solid grey; width: 3%; height: 5%; left: 77%; color: white; background-color: black; display: flex; justify-content: center;align-items: center;overflow-x: hidden;overflow-y: hidden;" onclick="konecAkt()">×</div>`;
     if (lang === 'cz'){
-        aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaJmenoCZ[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;
+
+        if (poradi[aaaNUM -1]=== CodesBackup[NUM]){aktualization = aktualization + `<div style="background-color: yellow" class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaJmenoCZ[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;
+        }else{aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaJmenoCZ[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;}
+
+
+
         while (NUM < aktNUM){
             NUM = NUM + 1;
-            aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaJmenoCZ[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;
+
+            if (poradi[aaaNUM -1]=== CodesBackup[NUM]){aktualization = aktualization + `<div style="background-color: yellow" class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaJmenoCZ[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;
+            }else{aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaJmenoCZ[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;}
         }
     }else if(lang === 'en'){
-        aktualization = aktualization +  `<div class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaJmenoEN[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;
+        if (poradi[aaaNUM -1]=== CodesBackup[NUM]){aktualization = aktualization + `<div style="background-color: yellow" class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaJmenoEN[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;
+        }else{aktualization = aktualization +  `<div class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaJmenoEN[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;}
         while (NUM < aktNUM){
             NUM = NUM + 1;
-            aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaJmenoEN[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;
+            if (poradi[aaaNUM -1]=== CodesBackup[NUM]){aktualization = aktualization + `<div style="background-color: yellow" class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaJmenoEN[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;
+        }else{aktualization = aktualization +  `<div class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaJmenoEN[CodesBackup[NUM]]} (${menaVs[CodesBackup[NUM]]})</div>`;}
         }
     }
     document.querySelector('.aktualizatormen').innerHTML = aktualization;
 }
+
+
+//Funkce která zobrazí aktualizatormen s názvy států jednotlivých měn
 function aktualizatorStatMen(aaaNUM){
     document.documentElement.style.setProperty('--z-index', '5' );
     const aktNUM = CodesBackup.length - 1;
@@ -316,20 +365,27 @@ function aktualizatorStatMen(aaaNUM){
     let lang = parametryUrl.get('lang');
     let aktualization = `<div style="position: fixed; border: 1px solid grey; width: 3%; height: 5%; left: 77%; color: white; background-color: black; display: flex; justify-content: center;align-items: center;overflow-x: hidden;overflow-y: hidden;" onclick="konecAkt()">×</div>`;
     if (lang === 'cz'){
-        aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaStatCZ[CodesBackup[NUM]]}</div>`;
+        if (poradi[aaaNUM -1]=== CodesBackup[NUM]){aktualization = aktualization + `<div style="background-color: yellow" class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaStatCZ[CodesBackup[NUM]]}</div>`;
+        }else{aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaStatCZ[CodesBackup[NUM]]}</div>`;}
         while (NUM < aktNUM){
             NUM = NUM + 1;
-            aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaStatCZ[CodesBackup[NUM]]}</div>`;
+            if (poradi[aaaNUM -1]=== CodesBackup[NUM]){aktualization = aktualization + `<div style="background-color: yellow" class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaStatCZ[CodesBackup[NUM]]}</div>`;
+            }else{aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaStatCZ[CodesBackup[NUM]]}</div>`;}
         }
     }else if(lang === 'en'){
-        aktualization = aktualization +  `<div class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaStatEN[CodesBackup[NUM]]}</div>`;
+        if (poradi[aaaNUM -1]=== CodesBackup[NUM]){aktualization = aktualization + `<div style="background-color: yellow" class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaStatEN[CodesBackup[NUM]]}</div>`;
+        }else{aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaStatEN[CodesBackup[NUM]]}</div>`;}
         while (NUM < aktNUM){
             NUM = NUM + 1;
-            aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaStatEN[CodesBackup[NUM]]}</div>`;
+            if (poradi[aaaNUM -1]=== CodesBackup[NUM]){aktualization = aktualization + `<div style="background-color: yellow" class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaStatEN[CodesBackup[NUM]]}</div>`;
+            }else{aktualization = aktualization + `<div class="aktu${NUM} aktunder" onclick="changeButtonMena(${aaaNUM - 1}, ${NUM})">${CodesBackup[NUM]} - ${menaStatEN[CodesBackup[NUM]]}</div>`;}
         }
     }
     document.querySelector('.aktualizatormen').innerHTML = aktualization;
 }
+
+
+//Funkce která zobrazí aktualizatormen pro hodnotu i
 function aktualizatorIMen(){
     document.documentElement.style.setProperty('--z-index', '5' );
     let NUM = 0;    
@@ -342,6 +398,7 @@ function aktualizatorIMen(){
     }else if(lang === langs[0]){
         langNUM = 0;
     }
+    
     let aktualization = `<div style="position: fixed; border: 1px solid grey; width: 3%; height: 5%; left: 77%; color: white; background-color: black; display: flex; justify-content: center;align-items: center;overflow-x: hidden;overflow-y: hidden;" onclick="konecAkt()">×</div>`;
 
     aktualization = aktualization +  `<div class="aktu${NUM} aktunder" onclick="changeButtonI(${NUM})">${NUM} ${textTransl["desetinne_carky"][langNUM]}</div>`;
