@@ -1,138 +1,42 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<link rel="stylesheet" href="style.css">
-		<title>Kurzy: Projekt #1</title>
-		<script src="javascript.js" defer></script>
-		<script src="javascript_currency_full.js" defer></script>
-	</head>
-	<body>
-		<div class="cernota"></div>
-		<div class="aktualizatormen"></div>
-		<div class="aktualni_mena" id="border" onclick="changeMena()"></div>
-		<div class="jazyk" id="border" onclick="changeLanguage()"></div>
-		<div class="plus" id="border" onclick="pridaniRadkuMeny()">+</div>
-		<div class="minus" id="border" onclick="odstraneniRadkuMeny()">-</div>
+    <head>
+        <style>
+            body{
+                font-size: 30px;
+                margin: 0;
+            }
+            button{
+                width: 40%;;
+                height: 100%;
+                font-size: 20px;
+            }
+            .bbb{
+                color: var(--color);
+            }
+        </style>
+		<script src="GE\skript.js" defer></script>
+        <script src="GE\slovicka.js" defer></script>
+    </head>
+    <body>
+        <header style="height: 100%; width: 100%; position: fixed;">
+            <div style="width: 100%; height: 10%;  "> <! -- Odchod atd-->
+                <a>Zpět</a>
+                <button onclick="dalsien()">Prohodit</button><button onclick="zmenalekc()">Změna lekce</button>
+            </div>
+            <div style="width: 100%;height: 5%; background-color: green;"><! -- progres bar-->
+                Budoucí progres bar
+            </div>
+            <div style="width: 100%;height: 10%; border:solid"><! -- popis-->
+                <a class="pocetslov"></a>
+            </div>
+            <div style="width: 100%;height: 65%; background-color: gainsboro; text-align: center; " onclick="dalsi()"><! -- karta-->
+                <br><a class="lekce"></a><br><br><a class="aaa"></a><br><a>-</a><br><a class="bbb"></a>
+            </div>
+            <div style="width: 100%;height: 10%; text-align: center; "> <! -- správná dopověď-->
+                <div style="padding-top: 20px;height: 100%; width: 100%;"onclick="odpověď()">Správná odpověď</div>
 
-		<header>
-			<div class="zeme" id="border">
-				<div class="head"><a id="zem"></a></div>
-				<div class="zeme1 headunder" onclick="aktualizatorStatMen(1)"></div>
-				<div class="zeme2 headunder" onclick="aktualizatorStatMen(2)"></div>
-				<div class="zeme3 headunder" onclick="aktualizatorStatMen(3)"></div>
-				<div class="zeme4 headunder" onclick="aktualizatorStatMen(4)"></div>
-				<div class="zeme5 headunder" onclick="aktualizatorStatMen(5)"></div>
-				<div class="zeme6 headunder" onclick="aktualizatorStatMen(6)"></div>
-				<div class="zeme7 headunder" onclick="aktualizatorStatMen(7)"></div>
-				<div class="zeme8 headunder" onclick="aktualizatorStatMen(8)"></div>
-				<div class="zeme9 headunder" onclick="aktualizatorStatMen(9)"></div>
-				<div class="zeme10 headunder" onclick="aktualizatorStatMen(10)"></div>
-				<div class="zeme11 headunder" onclick="aktualizatorStatMen(11)"></div>
-				<div class="zeme12 headunder" onclick="aktualizatorStatMen(12)"></div>
-				<div class="zeme13 headunder" onclick="aktualizatorStatMen(13)"></div>
-				<div class="zeme14 headunder" onclick="aktualizatorStatMen(14)"></div>
-				<div class="zeme15 headunder" onclick="aktualizatorStatMen(15)"></div>
-				<div class="zeme16 headunder" onclick="aktualizatorStatMen(16)"></div>
-				<div class="zeme17 headunder" onclick="aktualizatorStatMen(17)"></div>
-				<div class="zeme18 headunder" onclick="aktualizatorStatMen(18)"></div>
-				<div class="zeme19 headunder" onclick="aktualizatorStatMen(19)"></div>
-				<div class="zeme20 headunder" onclick="aktualizatorStatMen(20)"></div>
-			</div>
-			<div class="mena" id="border">
-				<div class="head"><a id="men"></a><a></a></div>
-				<div class="mena1 headunder" onclick="aktualizatorMen(1)"></div>
-				<div class="mena2 headunder" onclick="aktualizatorMen(2)"></div>
-				<div class="mena3 headunder" onclick="aktualizatorMen(3)"></div>
-				<div class="mena4 headunder" onclick="aktualizatorMen(4)"></div>
-				<div class="mena5 headunder" onclick="aktualizatorMen(5)"></div>
-				<div class="mena6 headunder" onclick="aktualizatorMen(6)"></div>
-				<div class="mena7 headunder" onclick="aktualizatorMen(7)"></div>
-				<div class="mena8 headunder" onclick="aktualizatorMen(8)"></div>
-				<div class="mena9 headunder" onclick="aktualizatorMen(9)"></div>
-				<div class="mena10 headunder" onclick="aktualizatorMen(10)"></div>
-				<div class="mena11 headunder" onclick="aktualizatorMen(11)"></div>
-				<div class="mena12 headunder" onclick="aktualizatorMen(12)"></div>
-				<div class="mena13 headunder" onclick="aktualizatorMen(13)"></div>
-				<div class="mena14 headunder" onclick="aktualizatorMen(14)"></div>
-				<div class="mena15 headunder" onclick="aktualizatorMen(15)"></div>
-				<div class="mena16 headunder" onclick="aktualizatorMen(16)"></div>
-				<div class="mena17 headunder" onclick="aktualizatorMen(17)"></div>
-				<div class="mena18 headunder" onclick="aktualizatorMen(18)"></div>
-				<div class="mena19 headunder" onclick="aktualizatorMen(19)"></div>
-				<div class="mena20 headunder" onclick="aktualizatorMen(20)"></div>
-			</div>
-			<div class="zeme_vlajka" id="border">
-				<div class="head" ><a>ㅤ</a></div>
-				<div class="zeme_vlajka1 headunder" onclick="aktualizatorStatMen(1)"></div>
-				<div class="zeme_vlajka2 headunder" onclick="aktualizatorStatMen(2)"></div>
-				<div class="zeme_vlajka3 headunder" onclick="aktualizatorStatMen(3)"></div>
-				<div class="zeme_vlajka4 headunder" onclick="aktualizatorStatMen(4)"></div>
-				<div class="zeme_vlajka5 headunder" onclick="aktualizatorStatMen(5)"></div>
-				<div class="zeme_vlajka6 headunder" onclick="aktualizatorStatMen(6)"></div>
-				<div class="zeme_vlajka7 headunder" onclick="aktualizatorStatMen(7)"></div>
-				<div class="zeme_vlajka8 headunder" onclick="aktualizatorStatMen(8)"></div>
-				<div class="zeme_vlajka9 headunder" onclick="aktualizatorStatMen(9)"></div>
-				<div class="zeme_vlajka10 headunder" onclick="aktualizatorStatMen(10)"></div>
-				<div class="zeme_vlajka11 headunder" onclick="aktualizatorStatMen(11)"></div>
-				<div class="zeme_vlajka12 headunder" onclick="aktualizatorStatMen(12)"></div>
-				<div class="zeme_vlajka13 headunder" onclick="aktualizatorStatMen(13)"></div>
-				<div class="zeme_vlajka14 headunder" onclick="aktualizatorStatMen(14)"></div>
-				<div class="zeme_vlajka15 headunder" onclick="aktualizatorStatMen(15)"></div>
-				<div class="zeme_vlajka16 headunder" onclick="aktualizatorStatMen(16)"></div>
-				<div class="zeme_vlajka17 headunder" onclick="aktualizatorStatMen(17)"></div>
-				<div class="zeme_vlajka18 headunder" onclick="aktualizatorStatMen(18)"></div>
-				<div class="zeme_vlajka19 headunder" onclick="aktualizatorStatMen(19)"></div>
-				<div class="zeme_vlajka20 headunder" onclick="aktualizatorStatMen(20)"></div>
-
-			</div>
-			<div class="kurz_prodej" id="border" onclick="aktualizatorIMen()">
-				
-				<div class="head" ><a id="kurz_prode"></a></div>
-				<div class="kurz_koupe1 headunder"></div>
-				<div class="kurz_koupe2 headunder"></div>
-				<div class="kurz_koupe3 headunder"></div>
-				<div class="kurz_koupe4 headunder"></div>
-				<div class="kurz_koupe5 headunder"></div>
-				<div class="kurz_koupe6 headunder"></div>
-				<div class="kurz_koupe7 headunder"></div>
-				<div class="kurz_koupe8 headunder"></div>
-				<div class="kurz_koupe9 headunder"></div>
-				<div class="kurz_koupe10 headunder"></div>
-				<div class="kurz_koupe11 headunder"></div>
-				<div class="kurz_koupe12 headunder"></div>
-				<div class="kurz_koupe13 headunder"></div>
-				<div class="kurz_koupe14 headunder"></div>
-				<div class="kurz_koupe15 headunder"></div>
-				<div class="kurz_koupe16 headunder"></div>
-				<div class="kurz_koupe17 headunder"></div>
-				<div class="kurz_koupe18 headunder"></div>
-				<div class="kurz_koupe19 headunder"></div>
-				<div class="kurz_koupe20 headunder"></div>
-			</div>
-			<div class="kurz_koupe" id="border" onclick="aktualizatorIMen()">
-				<div class="head"><a id="kurz_koup"></a></div>
-				<div class="kurz_prodej1 headunder"></div>
-				<div class="kurz_prodej2 headunder"></div>
-				<div class="kurz_prodej3 headunder"></div>
-				<div class="kurz_prodej4 headunder"></div>
-				<div class="kurz_prodej5 headunder"></div>
-				<div class="kurz_prodej6 headunder"></div>
-				<div class="kurz_prodej7 headunder"></div>
-				<div class="kurz_prodej8 headunder"></div>
-				<div class="kurz_prodej9 headunder"></div>
-				<div class="kurz_prodej10 headunder"></div>
-				<div class="kurz_prodej11 headunder"></div>
-				<div class="kurz_prodej12 headunder"></div>
-				<div class="kurz_prodej13 headunder"></div>
-				<div class="kurz_prodej14 headunder"></div>
-				<div class="kurz_prodej15 headunder"></div>
-				<div class="kurz_prodej16 headunder"></div>
-				<div class="kurz_prodej17 headunder"></div>
-				<div class="kurz_prodej18 headunder"></div>
-				<div class="kurz_prodej19 headunder"></div>
-				<div class="kurz_prodej20 headunder"></div>
-		</header>
-	</body>
+            </div>
+        </header>
+    </body>
 </html>
