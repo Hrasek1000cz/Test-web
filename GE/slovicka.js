@@ -215,7 +215,7 @@ const lekce ={
         98: ["", ""],        
         99: ["", ""],      
         100: ["", ""],    
-        "počet": 1
+        "počet": 46
     },
     3: {
         0: ["die Geburtstagsparty", "narozeninová oslava"],
